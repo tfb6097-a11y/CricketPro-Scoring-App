@@ -33,9 +33,9 @@ const AUDIENCE_LABELS: Record<NotificationAudience, string> = {
   ADMINS: "Admins",
 };
 
-function statusTone(status: NotifStatus): "success" | "warning" | "danger" {
+function statusTone(status: NotifStatus): "success" | "info" | "danger" {
   if (status === "SENT") return "success";
-  if (status === "SCHEDULED") return "warning";
+  if (status === "SCHEDULED") return "info";
   return "danger";
 }
 
