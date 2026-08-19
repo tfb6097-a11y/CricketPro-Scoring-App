@@ -219,7 +219,7 @@ export default function SettingsPage() {
           {activeSection === "Email Settings" && (
             <SectionForm title="Email Settings" onSave={handleSave} saving={settingsSaveState.saving} saved={settingsSaveState.saved}>
               <Toggle label="Enable Email Notifications" checked={settings.emailEnabled} onChange={(v) => updateField("emailEnabled", v)} />
-              <Field label="SMTP Host"><input value={settings.smtpHost ?? ""} onChange={(e) => updateField("smtpHost", e.target.value)} maxLength={20} style={inputStyle} placeholder="smtp.gmail.com" /></Field>
+              <Field label="SMTP Host"><input value={settings.smtpHost ?? ""} onChange={(e) => updateField("smtpHost", e.target.value)} maxLength={22} style={inputStyle} placeholder="smtp.gmail.com" /></Field>
               <Field label="SMTP Port"><input type="number" value={settings.smtpPort ?? 587} onChange={(e) => updateField("smtpPort", parseInt(e.target.value, 10))} style={inputStyle} /></Field>
               <Field label="SMTP Username"><input value={settings.smtpUsername ?? ""} onChange={(e) => updateField("smtpUsername", e.target.value)} maxLength={20} style={inputStyle} /></Field>
               <Field label="SMTP Password"><input type="password" value={settings.smtpPassword ?? ""} onChange={(e) => updateField("smtpPassword", e.target.value)} maxLength={20} style={inputStyle} /></Field>
