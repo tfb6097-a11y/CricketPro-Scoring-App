@@ -20,12 +20,14 @@ export interface PublicMatch {
   winnerTeamId: string | null;
   isTied: boolean;
   innings?: {
+    id: string;
     inningsNumber: number;
     totalRuns: number;
     totalWickets: number;
     oversBowled: string;
     battingTeamId: string;
     targetRuns: number | null;
+    isCompleted: boolean;
   }[];
 }
 
