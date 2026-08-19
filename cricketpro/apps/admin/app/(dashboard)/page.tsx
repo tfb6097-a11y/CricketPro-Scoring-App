@@ -44,9 +44,9 @@ export default function DashboardPage() {
   }, [summary, startDate, endDate]);
 
   const trendData = useMemo(() => {
-    if (!summary) return [];
-    return buildTrendData(summary.recentMatches.concat(summary.liveMatches), startDate, endDate);
-  }, [summary, startDate, endDate]);
+  if (!summary) return [];
+  return buildTrendData([...summary.recentMatches, ...summary.liveMatches], startDate, endDate);
+}, [summary, startDate, endDate]);
 
   function handleExport() {
     if (!filteredMatches.length) {
