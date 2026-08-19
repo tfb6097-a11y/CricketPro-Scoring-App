@@ -100,8 +100,8 @@ export default function ScorerLivePage() {
       setManhattanData(mh);
 
       if (active) {
-        const battingEntries = m.playingXI.filter((p: any) => p.teamId === active.battingTeamId);
-        const bowlingEntries = m.playingXI.filter((p: any) => p.teamId === active.bowlingTeamId);
+        const battingEntries = (m as any).playingXI.filter((p: any) => p.teamId === active.battingTeamId);
+const bowlingEntries = (m as any).playingXI.filter((p: any) => p.teamId === active.bowlingTeamId);
         const allPlayers = await fetchPlayers();
         const nameOf = (id: string) => allPlayers.find((p) => p.id === id)?.name ?? "Unknown";
         const photoOf = (id: string) => allPlayers.find((p) => p.id === id)?.photoUrl ?? null;
