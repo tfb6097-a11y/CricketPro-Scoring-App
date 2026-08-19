@@ -1,0 +1,503 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// =========================================================
+// AUTH / USERS
+// =========================================================
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  SCORER
+  VIEWER
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String
+  name              String
+  role              Role      @default(VIEWER)
+  isActive          Boolean   @default(true)
+  avatarUrl         String?
+  refreshTokenHash  String?
+  // Permanent lock flag: once true, this user row can NEVER be promoted to
+  // ADMIN/SUPER_ADMIN via the API — only resettable by hard-deleting the row
+  // (which a fresh signup with the same email would not inherit, since the
+  // flag lives on this row, not a separate permanent log).
+  hasBeenScorer     Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  auditLogs         AuditLog[]
+  scoredMatches     Match[]    @relation("ScoredByUser")
+  sentNotifications Notification[] @relation("SentByUser")
+  assignedMatches   Match[]   @relation("AssignedScorerUser")
+
+  @@map("users")
+}
+
+// =========================================================
+// PLAYERS / TEAMS
+// =========================================================
+
+enum PlayerRole {
+  BATTER
+  BOWLER
+  ALL_ROUNDER
+  WICKET_KEEPER
+}
+
+model Player {
+  id            String    @id @default(uuid())
+  name          String
+  dob           DateTime?
+  country       String?
+  role          PlayerRole @default(BATTER)
+  battingStyle  String?
+  bowlingStyle  String?
+  photoUrl      String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  matchPlayingXI MatchPlayingXI[]
+
+  teamMemberships TeamPlayer[]
+
+  @@map("players")
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  shortCode   String   @unique
+  logoUrl     String?
+  captainId   String?
+  coach       String?
+  manager     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  players           TeamPlayer[]
+  tournamentEntries TournamentTeam[]
+  homeMatches       Match[]  @relation("TeamA")
+  awayMatches       Match[]  @relation("TeamB")
+  wonMatches        Match[]  @relation("WinnerTeam")
+  tossWonMatches    Match[]  @relation("TossWinnerTeam")
+
+  @@map("teams")
+}
+
+model TeamPlayer {
+  id        String    @id @default(uuid())
+  teamId    String
+  playerId  String
+  isCaptain Boolean   @default(false)
+  isKeeper  Boolean   @default(false)
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+
+  team      Team    @relation(fields: [teamId], references: [id])
+  player    Player  @relation(fields: [playerId], references: [id])
+
+  @@index([teamId])
+  @@index([playerId])
+  @@map("team_players")
+}
+
+model Ground {
+  id        String   @id @default(uuid())
+  name      String
+  city      String
+  capacity  Int?
+  photoUrl  String?
+  createdAt DateTime @default(now())
+
+  matches   Match[]
+
+  @@map("grounds")
+}
+
+// =========================================================
+// TOURNAMENTS / FIXTURES
+// =========================================================
+
+enum MatchFormat {
+  T20
+  ODI
+  TEST
+}
+
+enum TournamentStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+}
+
+model Tournament {
+  id               String           @id @default(uuid())
+  name             String
+  format           MatchFormat
+  oversPerInnings  Int
+  startDate        DateTime
+  endDate          DateTime
+  status           TournamentStatus @default(UPCOMING)
+  logoUrl          String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  teams            TournamentTeam[]
+  matches          Match[]
+  pointsTable      PointsTableRow[]
+
+  @@map("tournaments")
+}
+
+model TournamentTeam {
+  id            String     @id @default(uuid())
+  tournamentId  String
+  teamId        String
+
+  tournament    Tournament @relation(fields: [tournamentId], references: [id])
+  team          Team       @relation(fields: [teamId], references: [id])
+
+  @@unique([tournamentId, teamId])
+  @@map("tournament_teams")
+}
+
+// =========================================================
+// MATCHES
+// =========================================================
+
+enum MatchStatus {
+  UPCOMING
+  LIVE
+  COMPLETED
+  ABANDONED
+}
+
+enum TossDecision {
+  BAT
+  BOWL
+}
+
+model Match {
+  id              String       @id @default(uuid())
+  tournamentId    String?
+  teamAId         String
+  teamBId         String
+  groundId        String
+  scheduledAt     DateTime
+  status          MatchStatus  @default(UPCOMING)
+
+  tossWinnerTeamId    String?
+  tossDecision        TossDecision?
+
+  winnerTeamId    String?
+  isTied          Boolean      @default(false)
+
+  currentScoringUserId String?
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  tournament      Tournament?  @relation(fields: [tournamentId], references: [id])
+  teamA           Team         @relation("TeamA", fields: [teamAId], references: [id])
+  teamB           Team         @relation("TeamB", fields: [teamBId], references: [id])
+  ground          Ground       @relation(fields: [groundId], references: [id])
+  tossWinnerTeam  Team?        @relation("TossWinnerTeam", fields: [tossWinnerTeamId], references: [id])
+  winnerTeam      Team?        @relation("WinnerTeam", fields: [winnerTeamId], references: [id])
+  scoredBy        User?        @relation("ScoredByUser", fields: [currentScoringUserId], references: [id])
+  assignedScorerId    String?
+  assignedScorer      User?     @relation("AssignedScorerUser", fields: [assignedScorerId], references: [id])
+
+  playingXI       MatchPlayingXI[]
+  innings         Innings[]
+
+  @@index([status])
+  @@map("matches")
+}
+
+model MatchPlayingXI {
+  id        String  @id @default(uuid())
+  matchId   String
+  teamId    String
+  playerId  String
+  isCaptain Boolean @default(false)
+  isKeeper  Boolean @default(false)
+
+  match     Match   @relation(fields: [matchId], references: [id])
+  player    Player  @relation(fields: [playerId], references: [id])
+
+  @@unique([matchId, playerId])
+  @@map("match_playing_xi")
+}
+
+// =========================================================
+// SCORING CORE (append-only, source of truth)
+// =========================================================
+
+model Innings {
+  id                 String   @id @default(uuid())
+  matchId            String
+  inningsNumber      Int
+  battingTeamId      String
+  bowlingTeamId      String
+
+  totalRuns          Int      @default(0)
+  totalWickets       Int      @default(0)
+  oversBowled        Decimal  @default(0.0) @db.Decimal(4, 1)
+  targetRuns         Int?
+
+  maxOversOverride   Int?
+  maxWicketsOverride Int?
+
+  // NEW — persists openers chosen before the first ball is bowled, so a
+  // logout/login mid-setup doesn't lose progress.
+  openingStrikerId    String?
+  openingNonStrikerId String?
+  openingBowlerId     String?
+
+  isCompleted        Boolean  @default(false)
+
+  match              Match    @relation(fields: [matchId], references: [id])
+  overs              Over[]
+
+  @@unique([matchId, inningsNumber])
+  @@map("innings")
+}
+
+model Over {
+  id             String   @id @default(uuid())
+  inningsId      String
+  overNumber     Int
+  bowlerId       String
+
+  runsConceded   Int      @default(0)
+  ballsBowled    Int      @default(0)
+  isMaiden       Boolean  @default(false)
+  isCompleted    Boolean  @default(false)
+
+  innings        Innings  @relation(fields: [inningsId], references: [id])
+  balls          Ball[]
+
+  @@unique([inningsId, overNumber])
+  @@map("overs")
+}
+
+enum ExtraType {
+  NONE
+  WIDE
+  NO_BALL
+  BYE
+  LEG_BYE
+}
+
+model Ball {
+  id              String    @id @default(uuid())
+  overId          String
+  sequenceNum     Int
+  strikerId       String
+  nonStrikerId    String
+  bowlerId        String
+
+  runsOffBat      Int       @default(0)
+  extraType       ExtraType @default(NONE)
+  extraRuns       Int       @default(0)
+  isLegalDelivery Boolean   @default(true)
+  isFreeHit       Boolean   @default(false)
+
+  commentary      String?
+
+  correctsBallId  String?
+  createdAt       DateTime  @default(now())
+
+  over            Over      @relation(fields: [overId], references: [id])
+  wicket          Wicket?
+
+  @@map("balls")
+}
+
+enum DismissalType {
+  BOWLED
+  CAUGHT
+  LBW
+  RUN_OUT
+  STUMPED
+  HIT_WICKET
+  RETIRED_HURT
+  OTHER
+}
+
+model Wicket {
+  id                 String        @id @default(uuid())
+  ballId             String        @unique
+  dismissedPlayerId  String
+  dismissalType      DismissalType
+  fielderId          String?
+  bowlerCredited     Boolean       @default(true)
+
+  ball               Ball          @relation(fields: [ballId], references: [id])
+
+  @@map("wickets")
+}
+
+// =========================================================
+// STATS / POINTS TABLE
+// =========================================================
+
+model PlayerCareerStats {
+  id              String   @id @default(uuid())
+  playerId        String   @unique
+  matchesPlayed   Int      @default(0)
+  runsScored      Int      @default(0)
+  ballsFaced      Int      @default(0)
+  hundreds        Int      @default(0)
+  fifties         Int      @default(0)
+  wicketsTaken    Int      @default(0)
+  economy         Decimal? @db.Decimal(5, 2)
+  updatedAt       DateTime @updatedAt
+
+  @@map("player_career_stats")
+}
+
+model TeamStats {
+  id            String   @id @default(uuid())
+  teamId        String   @unique
+  matchesPlayed Int      @default(0)
+  wins          Int      @default(0)
+  losses        Int      @default(0)
+  ties          Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  @@map("team_stats")
+}
+
+model PointsTableRow {
+  id            String     @id @default(uuid())
+  tournamentId  String
+  teamId        String
+  played        Int        @default(0)
+  won           Int        @default(0)
+  lost          Int        @default(0)
+  tied          Int        @default(0)
+  points        Int        @default(0)
+  nrr           Decimal    @default(0.0) @db.Decimal(6, 3)
+
+  tournament    Tournament @relation(fields: [tournamentId], references: [id])
+
+  @@unique([tournamentId, teamId])
+  @@map("points_table")
+}
+
+// =========================================================
+// NOTIFICATIONS
+// =========================================================
+
+enum NotificationType {
+  MATCH
+  SYSTEM
+  TOURNAMENT
+  ANNOUNCEMENT
+}
+
+enum NotificationAudience {
+  ALL_USERS
+  SCORERS
+  VIEWERS
+  ADMINS
+}
+
+enum NotificationStatus {
+  SENT
+  SCHEDULED
+  FAILED
+}
+
+model Notification {
+  id            String               @id @default(uuid())
+  title         String
+  type          NotificationType
+  audience      NotificationAudience @default(ALL_USERS)
+  status        NotificationStatus   @default(SENT)
+  payload       Json?
+  sentByUserId  String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  sentBy        User?    @relation("SentByUser", fields: [sentByUserId], references: [id])
+
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// =========================================================
+// AUDIT LOG
+// =========================================================
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String
+  action      String
+  entityType  String
+  entityId    String
+  before      Json?
+  after       Json?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+model SystemSettings {
+  id            String   @id @default("singleton")
+
+  // General
+  siteName      String   @default("CrickPro")
+  siteTagline   String   @default("Live Cricket. Real Excitement.")
+  adminEmail    String   @default("admin@crickpro.com")
+  timezone      String   @default("(GMT+05:30) Asia/Karachi")
+  dateFormat    String   @default("DD MMM YYYY")
+  timeFormat    String   @default("12 Hour")
+
+  // Email Settings
+  emailEnabled       Boolean @default(false)
+  smtpHost           String? 
+  smtpPort           Int?    @default(587)
+  smtpUsername       String?
+  smtpPassword       String?
+  emailFromAddress   String? @default("noreply@crickpro.com")
+
+  // Live Scoring
+  defaultFormat            String  @default("T20")
+  defaultOversPerInnings    Int     @default(20)
+  freeHitEnabled            Boolean @default(true)
+  autoStrikeRotation        Boolean @default(true)
+
+  // Security
+  sessionTimeoutMinutes    Int     @default(15)
+  requireStrongPassword    Boolean @default(true)
+  twoFactorEnabled         Boolean @default(false)
+
+  // Backup
+  autoBackupEnabled  Boolean @default(false)
+  backupFrequency    String  @default("Daily")
+
+  // Integrations
+  slackWebhookUrl        String?
+  googleAnalyticsId      String?
+
+  updatedAt     DateTime @updatedAt
+
+  @@map("system_settings")
+}

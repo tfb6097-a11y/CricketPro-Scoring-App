@@ -1,0 +1,57 @@
+:root {
+  /* Surfaces */
+  --cp-bg: #0b0e11;
+  --cp-surface: #151a1f;
+  --cp-surface-border: #232a31;
+
+  /* Accents */
+  --cp-accent-primary: #3ecf4a;
+  --cp-accent-secondary: #3b82f6;
+  --cp-danger: #ef4444;
+
+  /* Text */
+  --cp-text-primary: #f2f4f5;
+  --cp-text-secondary: #8a93a0;
+
+  /* Radius */
+  --cp-radius-card: 12px;
+  --cp-radius-inner: 8px;
+
+  /* Spacing */
+  --cp-card-padding: 18px;
+
+  /* Font */
+  --cp-font-family: "Inter", "SF Pro", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--cp-bg);
+  color: var(--cp-text-primary);
+  font-family: var(--cp-font-family);
+  margin: 0;
+}
+
+.cp-card {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-surface-border);
+  border-radius: var(--cp-radius-card);
+  padding: var(--cp-card-padding);
+}
+
+.cp-text-secondary {
+  color: var(--cp-text-secondary);
+}
+
+.cp-stat-number {
+  font-variant-numeric: tabular-nums;
+}
+@keyframes cp-spin {
+  to { transform: rotate(360deg); }
+}
+.cp-spin {
+  animation: cp-spin 1s linear infinite;
+}

@@ -1,0 +1,10 @@
+name: Security Scan
+on: [push, pull_request]
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
+      - uses: returntocorp/semgrep-action@fcd5ab7459e8d91cb1777481980d1b6ee9d91d17 # v1
+        with:
+          config: p/owasp-top-ten p/typescript p/nodejs

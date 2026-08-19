@@ -1,0 +1,18 @@
+-- AlterTable
+ALTER TABLE "system_settings" ADD COLUMN     "autoBackupEnabled" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "autoStrikeRotation" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "backupFrequency" TEXT NOT NULL DEFAULT 'Daily',
+ADD COLUMN     "defaultFormat" TEXT NOT NULL DEFAULT 'T20',
+ADD COLUMN     "defaultOversPerInnings" INTEGER NOT NULL DEFAULT 20,
+ADD COLUMN     "emailEnabled" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "emailFromAddress" TEXT DEFAULT 'noreply@crickpro.com',
+ADD COLUMN     "freeHitEnabled" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "googleAnalyticsId" TEXT,
+ADD COLUMN     "requireStrongPassword" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "sessionTimeoutMinutes" INTEGER NOT NULL DEFAULT 15,
+ADD COLUMN     "slackWebhookUrl" TEXT,
+ADD COLUMN     "smtpHost" TEXT,
+ADD COLUMN     "smtpPassword" TEXT,
+ADD COLUMN     "smtpPort" INTEGER DEFAULT 587,
+ADD COLUMN     "smtpUsername" TEXT,
+ADD COLUMN     "twoFactorEnabled" BOOLEAN NOT NULL DEFAULT false;

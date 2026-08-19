@@ -1,0 +1,418 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   ORIGINAL PROJECT STYLES — untouched, so every other page
+   keeps working exactly as before.
+   ============================================================ */
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.imgDark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+
+  .imgLight {
+    display: none;
+  }
+  .imgDark {
+    display: unset;
+  }
+}
+
+.page {
+  --gray-rgb: 0, 0, 0;
+  --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
+  --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
+
+  --button-primary-hover: #383838;
+  --button-secondary-hover: #f2f2f2;
+
+  display: grid;
+  grid-template-rows: 20px 1fr 20px;
+  align-items: center;
+  justify-items: center;
+  min-height: 100svh;
+  padding: 80px;
+  gap: 64px;
+  font-synthesis: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .page {
+    --gray-rgb: 255, 255, 255;
+    --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
+    --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
+
+    --button-primary-hover: #ccc;
+    --button-secondary-hover: #1a1a1a;
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  grid-row-start: 2;
+}
+
+.main ol {
+  font-family: var(--font-geist-mono);
+  padding-left: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: -0.01em;
+  list-style-position: inside;
+}
+
+.main li:not(:last-of-type) {
+  margin-bottom: 8px;
+}
+
+.main code {
+  font-family: inherit;
+  background: var(--gray-alpha-100);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.ctas {
+  display: flex;
+  gap: 16px;
+}
+
+.ctas a {
+  appearance: none;
+  border-radius: 128px;
+  height: 48px;
+  padding: 0 20px;
+  font-family: var(--font-geist-sans);
+  border: 1px solid transparent;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+a.primary {
+  background: var(--foreground);
+  color: var(--background);
+  gap: 8px;
+}
+
+a.secondary {
+  border-color: var(--gray-alpha-200);
+  min-width: 180px;
+}
+
+button.secondary {
+  appearance: none;
+  border-radius: 128px;
+  height: 48px;
+  padding: 0 20px;
+  font-family: var(--font-geist-sans);
+  border: 1px solid transparent;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 500;
+  background: transparent;
+  border-color: var(--gray-alpha-200);
+  min-width: 180px;
+}
+
+.footer {
+  font-family: var(--font-geist-sans);
+  grid-row-start: 3;
+  display: flex;
+  gap: 24px;
+}
+
+.footer a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer img {
+  flex-shrink: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  a.primary:hover {
+    background: var(--button-primary-hover);
+    border-color: transparent;
+  }
+
+  a.secondary:hover {
+    background: var(--button-secondary-hover);
+    border-color: transparent;
+  }
+
+  .footer a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 32px;
+    padding-bottom: 80px;
+  }
+
+  .main {
+    align-items: center;
+  }
+
+  .main ol {
+    text-align: center;
+  }
+
+  .ctas {
+    flex-direction: column;
+  }
+
+  .ctas a {
+    font-size: 14px;
+    height: 40px;
+    padding: 0 16px;
+  }
+
+  a.secondary {
+    min-width: auto;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .logo {
+    filter: invert();
+  }
+}
+
+/* ============================================================
+   CRICKPRO SCORER THEME — new, isolated inside .cp-theme only.
+   Does NOT touch body/html, so it cannot leak into other pages.
+   ============================================================ */
+
+:root {
+  --cp-bg: #0b0e11;
+  --cp-surface: #151a1f;
+  --cp-surface-border: #232a31;
+
+  --cp-text-primary: #e8eaed;
+  --cp-text-secondary: #ffffff;
+
+  --cp-accent-primary: #3ecf4a;
+  --cp-accent-secondary: #3b82f6;
+  --cp-danger: #ef4444;
+
+  --cp-radius-card: 14px;
+  --cp-radius-inner: 8px;
+}
+
+.cp-theme {
+  background: var(--cp-bg);
+  color: var(--cp-text-primary);
+  font-family: "Inter", system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.cp-theme .cp-card {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-surface-border);
+  border-radius: var(--cp-radius-card);
+  padding: 16px;
+}
+
+.cp-theme .cp-text-secondary {
+  color: var(--cp-text-secondary);
+}
+
+.cp-theme .cp-stat-number {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.cp-theme {
+  scrollbar-width: thin;
+  scrollbar-color: var(--cp-surface-border) transparent;
+}
+.cp-theme *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.cp-theme *::-webkit-scrollbar-thumb {
+  background: var(--cp-surface-border);
+  border-radius: 4px;
+}
+
+/* ============================================================
+   CRICKPRO PUBLIC HOME PAGE — additions for the redesigned
+   Home page (live cards, results, fixtures, CTA banner).
+   Everything scoped under .cp-theme, purely additive.
+   ============================================================ */
+
+.cp-theme .cp-card.cp-card-hover {
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  cursor: pointer;
+}
+.cp-theme .cp-card.cp-card-hover:hover {
+  border-color: var(--cp-accent-primary);
+  transform: translateY(-2px);
+}
+
+.cp-theme .cp-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.cp-theme .cp-view-all {
+  font-size: 12px;
+  color: var(--cp-text-secondary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.cp-theme .cp-view-all:hover {
+  color: var(--cp-accent-primary);
+}
+
+.cp-theme .cp-scroll-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x proximity;
+}
+.cp-theme .cp-scroll-row > * {
+  scroll-snap-align: start;
+}
+
+.cp-theme .cp-empty {
+  font-size: 13px;
+  color: var(--cp-text-secondary);
+  border: 1px dashed var(--cp-surface-border);
+  border-radius: var(--cp-radius-inner);
+  padding: 20px;
+  text-align: center;
+}
+
+.cp-theme .cp-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cp-danger);
+  display: inline-block;
+  animation: cp-pulse 1.6s ease-in-out infinite;
+}
+@keyframes cp-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
+  }
+}
+
+.cp-theme .cp-cta-banner {
+  background: linear-gradient(135deg, rgba(62, 207, 74, 0.12), rgba(62, 207, 74, 0.02));
+  border: 1px solid rgba(62, 207, 74, 0.3);
+  border-radius: var(--cp-radius-card);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cp-theme .cp-btn-accent {
+  background: var(--cp-accent-primary);
+  color: #06210b;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+  white-space: nowrap;
+}
+.cp-theme .cp-btn-accent:hover {
+  filter: brightness(1.08);
+}
+.cp-theme .cp-btn-accent:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .cp-theme .cp-live-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .cp-theme .cp-leaderboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+.cp-theme button {
+  color: #ffffff !important;
+}

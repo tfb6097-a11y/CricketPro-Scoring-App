@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: crickpro-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: crickpro
+      POSTGRES_PASSWORD: crickpro
+      POSTGRES_DB: crickpro
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - crickpro_pg_data:/var/lib/postgresql/data
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+
+  redis:
+    image: redis:7-alpine
+    container_name: crickpro-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - crickpro_redis_data:/data
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+
+volumes:
+  crickpro_pg_data:
+  crickpro_redis_data:
