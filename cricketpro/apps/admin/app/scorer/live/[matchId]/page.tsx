@@ -347,10 +347,13 @@ const bowlingEntries = (m as any).playingXI.filter((p: any) => p.teamId === acti
   return (
     <main className="cp-theme" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", fontFamily: "Inter, system-ui, sans-serif" }}>
       <style>{`
+        * { box-sizing: border-box; }
+
         .cp-live-topbar {
           flex-wrap: wrap;
           row-gap: 8px;
         }
+        .cp-live-topbar-left { display: flex; align-items: center; }
         .cp-live-topbar-right { flex-wrap: wrap; row-gap: 8px; justify-content: flex-end; }
         .cp-live-score-header { flex-wrap: wrap; row-gap: 16px; }
         .cp-live-stats { flex-wrap: wrap; row-gap: 10px; justify-content: center; }
@@ -358,9 +361,12 @@ const bowlingEntries = (m as any).playingXI.filter((p: any) => p.teamId === acti
           display: grid;
           gap: 20px;
           align-items: start;
+          width: 100%;
+          min-width: 0;
         }
-        .cp-live-content-pad { padding: 20px 28px 32px; }
+        .cp-live-content-pad { padding: 20px 28px 32px; width: 100%; overflow-x: hidden; }
         .cp-live-actions-row { flex-wrap: wrap; }
+        .cp-batter-row { display: flex; justify-content: space-around; padding: 18px 14px; flex-wrap: wrap; gap: 12px; }
 
         @media (max-width: 1300px) {
           .cp-live-grid { grid-template-columns: 1fr 1fr !important; }
@@ -369,21 +375,40 @@ const bowlingEntries = (m as any).playingXI.filter((p: any) => p.teamId === acti
           .cp-live-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 768px) {
-          .cp-live-topbar { height: auto !important; padding: 10px 16px !important; }
+          .cp-live-topbar {
+            grid-template-columns: 1fr !important;
+            grid-template-rows: auto auto auto !important;
+            height: auto !important;
+            padding: 10px 16px !important;
+            row-gap: 10px !important;
+          }
+          .cp-live-topbar-left { justify-content: center; }
           .cp-live-topbar > div:nth-child(2) { order: 3; width: 100%; text-align: center; }
+          .cp-live-topbar-right { justify-content: center !important; }
           .cp-live-score-header { padding: 16px !important; justify-content: center !important; text-align: center; }
           .cp-live-stats { gap: 24px !important; }
           .cp-live-content-pad { padding: 16px 16px 24px !important; }
+          .cp-live-user-name { display: none; }
         }
         @media (max-width: 480px) {
           .cp-live-stats { gap: 16px !important; }
+          .cp-live-score-header { padding: 12px !important; }
+          .cp-live-score-number { font-size: 30px !important; }
+          .cp-live-team-avatar { width: 38px !important; height: 38px !important; font-size: 12px !important; }
+          .cp-live-team-name { font-size: 14px !important; }
+          .cp-live-actions-row { gap: 8px !important; }
+          .cp-live-actions-row button { min-width: 100px; font-size: 12px !important; padding: 10px 6px !important; }
+          .cp-batter-row { padding: 14px 8px !important; gap: 8px !important; }
+          .cp-live-topbar-right .cp-live-clock-label { display: none; }
+        }
+        @media (max-width: 380px) {
+          .cp-live-end-match-text { display: none; }
         }
       `}</style>
 
       {/* TOP BAR */}
-      {/* TOP BAR */}
       <div className="cp-live-topbar" style={{ position: "sticky", top: 0, zIndex: 20, background: "var(--cp-bg)", flexShrink: 0, minHeight: 64, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", padding: "0 28px", borderBottom: "1px solid var(--cp-surface-border)", gap: 12 }}>
-        <div>
+        <div className="cp-live-topbar-left">
           <button onClick={() => router.push("/scorer")} style={topExitStyle}>← EXIT SCORING</button>
         </div>
 
@@ -403,14 +428,14 @@ const bowlingEntries = (m as any).playingXI.filter((p: any) => p.teamId === acti
           <span style={pillStyle(connected)}>
             {connected ? <Wifi size={12} /> : <WifiOff size={12} />} {connected ? "CONNECTED" : "OFFLINE"}
           </span>
-          <span style={{ ...pillStyle(false), color: "var(--cp-text-secondary)" }}>
+          <span className="cp-live-clock-label" style={{ ...pillStyle(false), color: "var(--cp-text-secondary)" }}>
             <Clock size={12} /> {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
-          <span style={{ display: "flex", alignItems: "center", color: "var(--cp-text-primary)", fontSize: 13, fontWeight: 600 }}>
+          <span className="cp-live-user-name" style={{ display: "flex", alignItems: "center", color: "var(--cp-text-primary)", fontSize: 13, fontWeight: 600 }}>
             {user?.name ?? "Scorer"}
           </span>
           <button onClick={handleEndMatch} style={endMatchButtonStyle}>
-            <Square size={13} style={{ marginRight: 4 }} /> END MATCH
+            <Square size={13} style={{ marginRight: 4 }} /> <span className="cp-live-end-match-text">END MATCH</span>
           </button>
         </div>
       </div>
@@ -421,7 +446,7 @@ const bowlingEntries = (m as any).playingXI.filter((p: any) => p.teamId === acti
         <div className="cp-live-stats" style={{ display: "flex", alignItems: "center", gap: 56 }}>
           <StatBlock label="CRR" value={crr} />
           <div style={{ textAlign: "center", minWidth: 150 }}>
-            <p className="cp-stat-number" style={{ margin: 0, fontSize: 38, fontWeight: 800, lineHeight: 1 }}>{currentInnings?.totalRuns ?? 0}/{currentInnings?.totalWickets ?? 0}</p>
+            <p className="cp-stat-number cp-live-score-number" style={{ margin: 0, fontSize: 38, fontWeight: 800, lineHeight: 1 }}>{currentInnings?.totalRuns ?? 0}/{currentInnings?.totalWickets ?? 0}</p>
             <p className="cp-text-secondary" style={{ margin: "6px 0 0", fontSize: 13 }}>{currentInnings?.oversBowled ?? "0.0"} Overs</p>
           </div>
           <StatBlock label="RRR" value={rrr} accent={currentInnings?.targetRuns ? "var(--cp-danger)" : undefined} sub={currentInnings?.targetRuns ? `Target ${currentInnings.targetRuns}` : undefined} />
@@ -477,7 +502,7 @@ const bowlingEntries = (m as any).playingXI.filter((p: any) => p.teamId === acti
         <div className="cp-live-content-pad">
           <div className="cp-live-grid" style={{ gridTemplateColumns: COLS }}>
             {/* LEFT COLUMN */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
               <MatchInfoCard
                 venue={match.ground?.name ?? "—"}
                 tossWinnerName={match.tossWinnerTeamId === match.teamA.id ? match.teamA.name : match.teamB.name}
@@ -524,7 +549,7 @@ const bowlingEntries = (m as any).playingXI.filter((p: any) => p.teamId === acti
 
             {/* CENTER COLUMN */}
             <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-              <div className="cp-card" style={{ display: "flex", justifyContent: "space-around", padding: "18px 14px", flexWrap: "wrap", gap: 12 }}>
+              <div className="cp-card cp-batter-row">
                 <BatsmanCard name={striker.name} runs={strikerStat?.runs ?? 0} balls={strikerStat?.balls ?? 0} isStriker photoUrl={striker.photoUrl} />
                 <BatsmanCard name={nonStriker!.name} runs={nonStrikerStat?.runs ?? 0} balls={nonStrikerStat?.balls ?? 0} isStriker={false} photoUrl={nonStriker!.photoUrl} />
                 <BowlerCard name={bowler!.name} overs={bowlerStat?.overs ?? "0.0"} maidens={bowlerStat?.maidens ?? 0} runs={bowlerStat?.runs ?? 0} wickets={bowlerStat?.wickets ?? 0} photoUrl={bowler!.photoUrl} />
@@ -678,7 +703,7 @@ function pillStyle(active: boolean): React.CSSProperties {
 function TeamHeader({ name, shortCode, logoUrl, status, align }: { name: string; shortCode: string; logoUrl?: string; status: string; align?: "right" }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 14, flexDirection: align ? "row-reverse" : "row" }}>
-      <div style={{
+      <div className="cp-live-team-avatar" style={{
         width: 48, height: 48, borderRadius: "50%", overflow: "hidden",
         background: "var(--cp-surface)",
         border: "1px solid var(--cp-surface-border)",
@@ -692,7 +717,7 @@ function TeamHeader({ name, shortCode, logoUrl, status, align }: { name: string;
         )}
       </div>
       <div style={{ textAlign: align }}>
-        <p style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>{name}</p>
+        <p className="cp-live-team-name" style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>{name}</p>
         <p style={{ margin: 0, fontSize: 12.5, color: status === "Batting" ? "var(--cp-accent-primary)" : "var(--cp-accent-secondary)", fontWeight: 600 }}>{status}</p>
       </div>
     </div>

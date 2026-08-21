@@ -44,9 +44,9 @@ export default function DashboardPage() {
   }, [summary, startDate, endDate]);
 
   const trendData = useMemo(() => {
-  if (!summary) return [];
-  return buildTrendData([...summary.recentMatches, ...summary.liveMatches], startDate, endDate);
-}, [summary, startDate, endDate]);
+    if (!summary) return [];
+    return buildTrendData([...summary.recentMatches, ...summary.liveMatches], startDate, endDate);
+  }, [summary, startDate, endDate]);
 
   function handleExport() {
     if (!filteredMatches.length) {
@@ -81,21 +81,40 @@ export default function DashboardPage() {
   const dateRangeLabel = `${new Date(startDate).toLocaleDateString(undefined, { day: "2-digit", month: "short" })} - ${new Date(endDate).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}`;
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", width: "100%", maxWidth: "100%", overflowX: "hidden", boxSizing: "border-box" }}>
       <style>{`
+        * { box-sizing: border-box; }
+
         .cp-dash-header { flex-wrap: wrap; gap: 12px; }
         .cp-dash-header-actions { flex-wrap: wrap; gap: 10px; }
         .cp-dash-datepicker { flex-wrap: wrap; }
+
+        .cp-dash-stats {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
         .cp-dash-2col {
           display: grid;
           grid-template-columns: 2fr 1fr;
           gap: 16px;
         }
+
         .cp-table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .cp-table-scroll table { min-width: 480px; }
+        .cp-table-scroll table { min-width: 480px; width: 100%; }
+
+        .cp-export-label { display: inline; }
+        .cp-date-label { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* Tablet */
         @media (max-width: 900px) {
           .cp-dash-2col { grid-template-columns: 1fr; }
+          .cp-dash-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
+
+        /* Mobile */
         @media (max-width: 640px) {
           .cp-dash-datepicker {
             position: fixed !important;
@@ -106,36 +125,64 @@ export default function DashboardPage() {
             width: 100% !important;
             border-radius: 12px 12px 0 0 !important;
             z-index: 50;
+            padding: 16px !important;
           }
+          .cp-dash-datepicker > div { flex: 1 1 auto; }
+          .cp-dash-datepicker input[type="date"] { width: 100%; }
+        }
+
+        /* Small mobile */
+        @media (max-width: 480px) {
+          .cp-dash-header { flex-direction: column; align-items: stretch !important; }
+          .cp-dash-header-actions { width: 100%; }
+          .cp-dash-header-actions > button { flex: 1 1 0; justify-content: center; }
+          .cp-date-label { max-width: none; }
+          .cp-dash-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+          .cp-hide-xs { display: none !important; }
+        }
+
+        /* Extra small mobile */
+        @media (max-width: 380px) {
+          .cp-dash-stats { grid-template-columns: 1fr; }
+          .cp-export-label { display: none; }
         }
       `}</style>
 
       {/* Header row: title left, date range + export right */}
-      <div className="cp-dash-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, position: "relative" }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Welcome back, Admin 👋</h1>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#FFFFFF" }}>
+      <div
+        className="cp-dash-header"
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, position: "relative" }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, lineHeight: 1.3 }}>Welcome back, Admin 👋</h1>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--cp-text-secondary)" }}>
             Here's what's happening in CrickPro today.
           </p>
         </div>
-        <div className="cp-dash-header-actions" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+
+        <div className="cp-dash-header-actions" style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
           <button
             onClick={() => setShowDatePicker((s) => !s)}
             style={{
               fontSize: 12.5,
-              color: "#FFFFFF",
+              color: "var(--cp-text-primary)",
               background: "var(--cp-surface)",
               border: "1px solid var(--cp-surface-border)",
               borderRadius: "var(--cp-radius-inner)",
               padding: "7px 12px",
               cursor: "pointer",
-              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
             }}
           >
-            {dateRangeLabel}
+            <CalendarClock size={13} />
+            <span className="cp-date-label">{dateRangeLabel}</span>
           </button>
+
           <button onClick={handleExport} style={exportButtonStyle}>
-            <Download size={14} /> Export
+            <Download size={14} />
+            <span className="cp-export-label">Export</span>
           </button>
 
           {showDatePicker && (
@@ -166,7 +213,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: "flex", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
+      <div className="cp-dash-stats">
         <StatCard icon={CalendarClock} label="Total Matches" value={filteredMatches.length} trend={`of ${summary.totalMatches} total`} />
         <StatCard icon={Radio} label="Live Matches" value={summary.liveMatchesCount} accent="var(--cp-danger)" trend={summary.liveMatchesCount > 0 ? "Live Now" : undefined} />
         <StatCard icon={Users} label="Total Users" value={summary.totalUsers} />
@@ -175,13 +222,13 @@ export default function DashboardPage() {
 
       {/* Row 2: Matches Overview chart + Top Tournaments */}
       <div className="cp-dash-2col" style={{ marginBottom: 20 }}>
-        <div className="cp-card">
+        <div className="cp-card" style={{ minWidth: 0 }}>
           <h3 style={{ marginTop: 0, marginBottom: 14, fontSize: 15 }}>Matches Overview</h3>
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={trendData}>
+            <LineChart data={trendData} margin={{ left: -20, right: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--cp-surface-border)" />
               <XAxis dataKey="date" tick={{ fill: "#8A93A0", fontSize: 11 }} />
-              <YAxis tick={{ fill: "#8A93A0", fontSize: 11 }} />
+              <YAxis tick={{ fill: "#8A93A0", fontSize: 11 }} allowDecimals={false} />
               <Tooltip contentStyle={{ background: "#151A1F", border: "1px solid #232A31", borderRadius: 8 }} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Line type="monotone" dataKey="live" stroke="#EF4444" strokeWidth={2} dot={false} name="Live" />
@@ -191,15 +238,15 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
 
-        <div className="cp-card">
+        <div className="cp-card" style={{ minWidth: 0 }}>
           <h3 style={{ marginTop: 0, marginBottom: 14, fontSize: 15 }}>Top Tournaments</h3>
           {summary.tournamentMatchCounts
             .sort((a, b) => b.matches - a.matches)
             .slice(0, 5)
             .map((t) => (
-              <div key={t.name} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: "1px solid var(--cp-surface-border)", fontSize: 13 }}>
-                <span>{t.name}</span>
-                <span className="cp-text-secondary">{t.matches} Matches</span>
+              <div key={t.name} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "9px 0", borderBottom: "1px solid var(--cp-surface-border)", fontSize: 13 }}>
+                <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.name}</span>
+                <span className="cp-text-secondary" style={{ flexShrink: 0 }}>{t.matches} Matches</span>
               </div>
             ))}
           {summary.tournamentMatchCounts.length === 0 && (
@@ -210,15 +257,17 @@ export default function DashboardPage() {
 
       {/* Row 3: Recent Matches (filtered) + System Status */}
       <div className="cp-dash-2col">
-        <div className="cp-card">
+        <div className="cp-card" style={{ minWidth: 0 }}>
           <h3 style={{ marginTop: 0, marginBottom: 14, fontSize: 15 }}>Recent Matches</h3>
           <div className="cp-table-scroll">
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  {["Match", "Score", "Status", "Scorer", "Actions"].map((h) => (
-                    <th key={h} className="cp-text-secondary" style={thStyle}>{h}</th>
-                  ))}
+                  <th className="cp-text-secondary" style={thStyle}>Match</th>
+                  <th className="cp-text-secondary" style={thStyle}>Score</th>
+                  <th className="cp-text-secondary" style={thStyle}>Status</th>
+                  <th className="cp-text-secondary cp-hide-xs" style={thStyle}>Scorer</th>
+                  <th className="cp-text-secondary" style={thStyle}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -233,20 +282,20 @@ export default function DashboardPage() {
                       {m.innings?.length ? `${m.innings[m.innings.length - 1].totalRuns}/${m.innings[m.innings.length - 1].totalWickets}` : "—"}
                     </td>
                     <td style={cellStyle}><StatusPill status={m.status} /></td>
-                    <td style={cellStyle} className="cp-text-secondary">{m.scoredBy?.name ?? "—"}</td>
-                   <td style={cellStyle}>
-  {m.status === "LIVE" ? (
-    <button onClick={() => (window.location.href = `${PUBLIC_SITE_URL}/live/${m.id}`)} style={actionButtonStyle}>
-      Open
-    </button>
-  ) : m.status === "COMPLETED" ? (
-    <button onClick={() => (window.location.href = `${PUBLIC_SITE_URL}/scorecard/${m.id}`)} style={actionButtonStyle}>
-      View
-    </button>
-  ) : (
-    <span className="cp-text-secondary" style={{ fontSize: 12 }}>—</span>
-  )}
-</td>
+                    <td style={cellStyle} className="cp-text-secondary cp-hide-xs">{m.scoredBy?.name ?? "—"}</td>
+                    <td style={cellStyle}>
+                      {m.status === "LIVE" ? (
+                        <button onClick={() => (window.location.href = `${PUBLIC_SITE_URL}/live/${m.id}`)} style={actionButtonStyle}>
+                          Open
+                        </button>
+                      ) : m.status === "COMPLETED" ? (
+                        <button onClick={() => (window.location.href = `${PUBLIC_SITE_URL}/scorecard/${m.id}`)} style={actionButtonStyle}>
+                          View
+                        </button>
+                      ) : (
+                        <span className="cp-text-secondary" style={{ fontSize: 12 }}>—</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 {filteredMatches.length === 0 && (
@@ -257,7 +306,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="cp-card">
+        <div className="cp-card" style={{ minWidth: 0 }}>
           <h3 style={{ marginTop: 0, marginBottom: 14, fontSize: 15 }}>System Status</h3>
           {[
             { label: "API Status", value: "Operational" },
@@ -312,8 +361,8 @@ function StatusPill({ status }: { status: string }) {
 
 const thStyle: React.CSSProperties = { textAlign: "left", fontSize: 11, textTransform: "uppercase", padding: "6px 10px", borderBottom: "1px solid var(--cp-surface-border)", whiteSpace: "nowrap" };
 const cellStyle: React.CSSProperties = { padding: "8px 10px", borderBottom: "1px solid var(--cp-surface-border)", fontSize: 13 };
-const actionButtonStyle: React.CSSProperties = { color: "#FFFFFF", fontSize: 12.5, fontWeight: 600, textDecoration: "none", background: "transparent", border: "none", cursor: "pointer", padding: 0 };
-const labelStyle: React.CSSProperties = { display: "block", fontSize: 11, color: "#FFFFFF", marginBottom: 3 };
+const actionButtonStyle: React.CSSProperties = { color: "var(--cp-accent-primary)", fontSize: 12.5, fontWeight: 600, textDecoration: "none", background: "transparent", border: "none", cursor: "pointer", padding: 0 };
+const labelStyle: React.CSSProperties = { display: "block", fontSize: 11, color: "var(--cp-text-secondary)", marginBottom: 3 };
 const inputStyle: React.CSSProperties = { background: "var(--cp-bg)", border: "1px solid var(--cp-surface-border)", borderRadius: "var(--cp-radius-inner)", padding: "6px 8px", color: "var(--cp-text-primary)", fontSize: 12.5 };
 const exportButtonStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 6, background: "var(--cp-accent-primary)", color: "#FFFFFF", border: "none", borderRadius: "var(--cp-radius-inner)", padding: "8px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer" };
 const applyButtonStyle: React.CSSProperties = { background: "var(--cp-accent-primary)", color: "#FFFFFF", border: "none", borderRadius: "var(--cp-radius-inner)", padding: "6px 12px", fontWeight: 700, fontSize: 12.5, cursor: "pointer" };

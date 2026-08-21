@@ -16,14 +16,15 @@ export class MailService {
     }
 
     return nodemailer.createTransport({
-      host: settings.smtpHost,
-      port: settings.smtpPort ?? 587,
-      secure: (settings.smtpPort ?? 587) === 465, // true for port 465, false for 587/others
-      auth: {
-        user: settings.smtpUsername,
-        pass: settings.smtpPassword,
-      },
-    });
+  host: settings.smtpHost,
+  port: settings.smtpPort ?? 587,
+  secure: (settings.smtpPort ?? 587) === 465,
+  family: 4,   // 👈 ye line add karo — IPv6 ki jagah force IPv4 use karega
+  auth: {
+    user: settings.smtpUsername,
+    pass: settings.smtpPassword,
+  },
+}as any);
   }
 
   async sendWelcomeEmail(to: string, name: string, plainPassword: string) {
